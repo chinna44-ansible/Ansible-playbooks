@@ -1,0 +1,26 @@
+---
+- hosts: all
+  tasks:
+    - name: "Create directory to download files from S3"
+      connection: local
+      file:
+        path: "{{ download_dir }}"
+        state: directory
+      delegate_to: localhost
+
+# Downloading object from s3 bucket on Tower node
+    - name: Download Object from S3
+      connection: local
+      aws_s3:
+         bucket: "{{ BucketName }}"
+         object: "{{ object }}"
+         dest: "{{ download_dir }}/{{ object }}"
+         mode: get
+         region: 'us-east-1'
+         overwrite: different
+      delegate_to: localhost
+
+    - name: fetching the downloaded file from master node to Windows host
+      win_copy:
+         src: "{{ download_dir }}/{{ object }}"  # Path of downloaded package in master node
+         dest: "{{ win_dir }}/{{ object }}"        # Path of installer directory in targeted host
